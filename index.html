@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>a question for you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#fff3ef;
+    --blush:#ffd9d6;
+    --rose:#e85c7b;
+    --deep-rose:#c23a63;
+    --plum:#3a1f2e;
+    --gold:#e7b33e;
+    --white:#fffaf8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:linear-gradient(180deg,var(--cream) 0%, var(--blush) 100%);
+    font-family:'Poppins',sans-serif;
+    color:var(--plum);
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* floating hearts background */
+  .heart-field{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
+  .heart-field span{
+    position:absolute;
+    bottom:-40px;
+    font-size:22px;
+    opacity:.28;
+    animation:float 14s linear infinite;
+    color:var(--rose);
+  }
+  @keyframes float{
+    0%{transform:translateY(0) translateX(0) rotate(0deg);opacity:0;}
+    10%{opacity:.35;}
+    100%{transform:translateY(-110vh) translateX(20px) rotate(25deg);opacity:0;}
+  }
+
+  .app{
+    position:relative;
+    z-index:1;
+    max-width:720px;
+    margin:0 auto;
+    padding:32px 24px 80px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* progress dots */
+  .progress{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-bottom:8px;
+  }
+  .progress .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:rgba(194,58,99,0.25);
+    transition:background .3s ease, transform .3s ease;
+  }
+  .progress .dot.active{background:var(--rose);transform:scale(1.3);}
+
+  .page{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:20px;animation:fadeIn .5s ease;}
+  .page.active{display:flex;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ---- PAGE 1: ASK ---- */
+  #page-ask h1{
+    font-family:'Caveat',cursive;
+    font-weight:700;
+    font-size:clamp(2.6rem,9vw,4.6rem);
+    color:var(--deep-rose);
+    margin:0 0 6px;
+    line-height:1.05;
+  }
+  #page-ask .sub{
+    font-size:.95rem;
+    color:var(--plum);
+    opacity:.6;
+    margin-bottom:48px;
+    letter-spacing:.02em;
+  }
+  .ask-buttons{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:28px;
+    flex-wrap:wrap;
+    min-height:120px;
+  }
+  #yesBtn, #noBtn{
+    border:none;
+    border-radius:999px;
+    cursor:pointer;
+    font-family:'Poppins',sans-serif;
+    font-weight:600;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1), opacity .3s ease, background .3s ease;
+  }
+  #yesBtn{
+    background:var(--rose);
+    color:var(--white);
+    padding:16px 34px;
+    font-size:1.05rem;
+    box-shadow:0 10px 24px rgba(232,92,123,.35);
+  }
+  #yesBtn:hover{background:var(--deep-rose);}
+  #noBtn{
+    background:transparent;
+    color:var(--plum);
+    border:1.5px solid rgba(58,31,46,.25);
+    padding:16px 34px;
+    font-size:1.05rem;
+  }
+  #noBtn:hover{border-color:var(--plum);}
+  #noBtn:disabled{cursor:default;}
+
+  .ask-hint{
+    margin-top:28px;
+    font-size:.85rem;
+    color:var(--deep-rose);
+    opacity:0;
+    transition:opacity .4s ease;
+    min-height:1.2em;
+  }
+  .ask-hint.show{opacity:.75;}
+
+  /* ---- shared section headers ---- */
+  .page h2{
+    font-family:'Playfair Display',serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:clamp(1.7rem,5vw,2.3rem);
+    color:var(--deep-rose);
+    margin:0 0 6px;
+  }
+  .page .lede{
+    font-size:.92rem;
+    color:var(--plum);
+    opacity:.65;
+    margin-bottom:34px;
+    max-width:440px;
+  }
+
+  /* ---- cards (ideas + outfit) ---- */
+  .card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:16px;
+    width:100%;
+    margin-bottom:36px;
+  }
+  .card{
+    background:var(--white);
+    border-radius:18px;
+    padding:22px 18px;
+    text-align:left;
+    box-shadow:0 6px 20px rgba(194,58,99,.08);
+    border:1.5px solid rgba(232,92,123,.12);
+    cursor:pointer;
+    position:relative;
+    transition:border-color .2s ease, background .2s ease, transform .15s ease, box-shadow .2s ease;
+  }
+  .card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(194,58,99,.14);}
+  .card.selected{
+    border-color:var(--rose);
+    background:linear-gradient(180deg,#fff 0%, var(--blush) 180%);
+    box-shadow:0 10px 26px rgba(194,58,99,.2);
+  }
+  .card .check{
+    position:absolute;top:14px;right:14px;
+    width:20px;height:20px;border-radius:50%;
+    background:var(--rose);color:var(--white);
+    font-size:.7rem;display:flex;align-items:center;justify-content:center;
+    opacity:0;transform:scale(.5);
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .card.selected .check{opacity:1;transform:scale(1);}
+  .card .emoji{font-size:1.7rem;display:block;margin-bottom:10px;}
+  .card h3{
+    font-family:'Playfair Display',serif;
+    font-size:1.05rem;
+    margin:0 0 6px;
+    color:var(--deep-rose);
+  }
+  .card p{font-size:.86rem;line-height:1.5;margin:0;opacity:.75;}
+
+  .next-btn{
+    border:none;
+    background:var(--rose);
+    color:var(--white);
+    padding:14px 30px;
+    border-radius:999px;
+    font-family:'Poppins',sans-serif;
+    font-weight:500;
+    font-size:.95rem;
+    cursor:pointer;
+    box-shadow:0 10px 24px rgba(232,92,123,.3);
+    transition:background .25s ease, transform .2s ease;
+  }
+  .next-btn:hover{background:var(--deep-rose);transform:translateY(-2px);}
+
+  /* ---- calendar ---- */
+  .cal-wrap{
+    background:var(--white);
+    border-radius:20px;
+    padding:24px;
+    box-shadow:0 6px 24px rgba(194,58,99,.1);
+    width:100%;
+    max-width:380px;
+  }
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .cal-head button{
+    background:none;border:none;cursor:pointer;
+    font-size:1.1rem;color:var(--deep-rose);
+    width:32px;height:32px;border-radius:50%;
+    transition:background .2s ease;
+  }
+  .cal-head button:hover{background:var(--blush);}
+  .cal-head .month-label{font-family:'Playfair Display',serif;font-weight:600;color:var(--plum);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .cal-grid .wd{font-size:.7rem;text-align:center;opacity:.5;padding-bottom:6px;}
+  .cal-grid .day{
+    aspect-ratio:1/1;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    font-size:.85rem;
+    cursor:pointer;
+    transition:background .2s ease, color .2s ease, transform .15s ease;
+  }
+  .cal-grid .day.empty{cursor:default;}
+  .cal-grid .day.past{opacity:.25;cursor:default;}
+  .cal-grid .day.today{border:1.5px solid var(--rose);}
+  .cal-grid .day.future:hover{background:var(--blush);}
+  .cal-grid .day.selected{background:var(--rose);color:var(--white);transform:scale(1.08);}
+
+  #confirm{
+    margin-top:26px;
+    font-family:'Playfair Display',serif;
+    font-style:italic;
+    font-size:1.2rem;
+    color:var(--deep-rose);
+  }
+  #confirm .small{
+    display:block;
+    font-family:'Poppins',sans-serif;
+    font-style:normal;
+    font-size:.85rem;
+    opacity:.6;
+    margin-top:6px;
+  }
+
+  /* ---- recap of responses ---- */
+  .recap{
+    margin-top:28px;
+    width:100%;
+    max-width:380px;
+    background:var(--white);
+    border-radius:18px;
+    padding:20px 22px;
+    box-shadow:0 6px 20px rgba(194,58,99,.08);
+    text-align:left;
+  }
+  .recap h4{
+    margin:0 0 12px;
+    font-family:'Playfair Display',serif;
+    font-size:.95rem;
+    color:var(--deep-rose);
+    font-style:italic;
+  }
+  .recap-row{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    font-size:.85rem;
+    padding:7px 0;
+    border-bottom:1px solid rgba(58,31,46,.08);
+  }
+  .recap-row:last-child{border-bottom:none;}
+  .recap-row .label{opacity:.55;}
+  .recap-row .value{font-weight:500;color:var(--plum);text-align:right;}
+  .recap-row .value.empty{opacity:.4;font-weight:400;font-style:italic;}
+
+  .burst{position:fixed;pointer-events:none;font-size:1.4rem;z-index:5;animation:burstUp 1s ease-out forwards;}
+  @keyframes burstUp{
+    0%{transform:translateY(0) scale(.6);opacity:1;}
+    100%{transform:translateY(-90px) scale(1.2);opacity:0;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .heart-field span{animation:none;display:none;}
+    .page{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="heart-field" id="heartField"></div>
+
+<div class="app">
+  <div class="progress">
+    <div class="dot active" data-dot="0"></div>
+    <div class="dot" data-dot="1"></div>
+    <div class="dot" data-dot="2"></div>
+    <div class="dot" data-dot="3"></div>
+  </div>
+
+  <!-- PAGE 1 -->
+  <section class="page active" id="page-ask">
+    <h1>Kinley, will you go out<br>with me?</h1>
+    <p class="sub">just a simple question. take your time.</p>
+    <div class="ask-buttons">
+      <button id="yesBtn">yes 💕</button>
+      <button id="noBtn">no</button>
+    </div>
+    <p class="ask-hint" id="askHint"></p>
+  </section>
+
+  <!-- PAGE 2: DATE IDEAS -->
+  <section class="page" id="page-ideas">
+    <h2>yay. here's a few ideas</h2>
+    <p class="lede">pick one, mix a few, or just show up — that works too.</p>
+    <div class="card-grid" id="ideaGrid">
+      <div class="card" data-value="Picnic in the park"><span class="check">✓</span><span class="emoji">🧺</span><h3>Picnic in the park</h3><p>A blanket, sandwiches, something sweet, and nowhere to be.</p></div>
+      <div class="card" data-value="Movie night"><span class="check">✓</span><span class="emoji">🎬</span><h3>Movie night</h3><p>Pick something we can quietly judge together.</p></div>
+      <div class="card" data-value="Walk on the beach"><span class="check">✓</span><span class="emoji">🏖️</span><h3>Walk on the beach</h3><p>Shoes off, tide out, no particular direction in mind.</p></div>
+      <div class="card" data-value="Coffee shop crawl"><span class="check">✓</span><span class="emoji">☕</span><h3>Coffee shop crawl</h3><p>Three cafés, one order each, zero rush.</p></div>
+      <div class="card" data-value="Stargazing"><span class="check">✓</span><span class="emoji">🌌</span><h3>Stargazing</h3><p>A blanket, a playlist, and a good excuse to sit close.</p></div>
+      <div class="card" data-value="Dinner"><span class="check">✓</span><span class="emoji">🍽️</span><h3>Dinner</h3><p>Somewhere nice, somewhere casual — your call.</p></div>
+    </div>
+    <button class="next-btn" data-next="page-outfit">next: what to wear →</button>
+  </section>
+
+  <!-- PAGE 3: OUTFIT -->
+  <section class="page" id="page-outfit">
+    <h2>what to wear</h2>
+    <p class="lede">depends which idea you pick — here's a cheat sheet.</p>
+    <div class="card-grid" id="outfitGrid">
+      <div class="card" data-value="Casual &amp; cozy"><span class="check">✓</span><span class="emoji">👖</span><h3>Casual &amp; cozy</h3><p>For the park, beach, or coffee run: jeans, your comfiest layers, sneakers.</p></div>
+      <div class="card" data-value="Something cute"><span class="check">✓</span><span class="emoji">👗</span><h3>Something cute</h3><p>For dinner or a movie: a dress or a nice top, easy to move in.</p></div>
+      <div class="card" data-value="Ready to move"><span class="check">✓</span><span class="emoji">👟</span><h3>Ready to move</h3><p>For the beach walk or anything active: athleisure and shoes you can walk in all day.</p></div>
+      <div class="card" data-value="Stargazing ready"><span class="check">✓</span><span class="emoji">🧥</span><h3>Stargazing ready</h3><p>Warm layers, comfy shoes, and a jacket to share if it gets cold.</p></div>
+    </div>
+    <button class="next-btn" data-next="page-calendar">next: pick a day →</button>
+  </section>
+
+  <!-- PAGE 4: CALENDAR -->
+  <section class="page" id="page-calendar">
+    <h2>pick a day</h2>
+    <p class="lede">whenever works for you — I'll clear my schedule.</p>
+    <div class="cal-wrap">
+      <div class="cal-head">
+        <button id="prevMonth" aria-label="previous month">‹</button>
+        <span class="month-label" id="monthLabel"></span>
+        <button id="nextMonth" aria-label="next month">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+    <p id="confirm" hidden></p>
+
+    <div class="recap">
+      <h4>the plan so far</h4>
+      <div class="recap-row"><span class="label">date idea</span><span class="value empty" id="recapIdea">not picked yet</span></div>
+      <div class="recap-row"><span class="label">what to wear</span><span class="value empty" id="recapOutfit">not picked yet</span></div>
+      <div class="recap-row"><span class="label">day</span><span class="value empty" id="recapDay">not picked yet</span></div>
+    </div>
+
+    <button class="next-btn" type="button" id="sendBtn" style="margin-top:22px;">send my answer 💌</button>
+    <p id="sendStatus" class="ask-hint"></p>
+  </section>
+
+  <!-- PAGE 5: THANK YOU -->
+  <section class="page" id="page-thanks">
+    <h1 style="font-family:'Caveat',cursive;font-weight:700;font-size:clamp(2.4rem,8vw,3.8rem);color:var(--deep-rose);margin:0 0 10px;">it's sent 💌</h1>
+    <p class="lede" style="margin-bottom:8px;">thank you for answering — I'll see it soon.</p>
+    <div class="recap" style="margin-top:18px;">
+      <h4>what you picked</h4>
+      <div class="recap-row"><span class="label">date idea</span><span class="value" id="recapIdeaFinal">—</span></div>
+      <div class="recap-row"><span class="label">what to wear</span><span class="value" id="recapOutfitFinal">—</span></div>
+      <div class="recap-row"><span class="label">day</span><span class="value" id="recapDayFinal">—</span></div>
+    </div>
+    <p id="thanksNote" class="ask-hint" hidden></p>
+  </section>
+</div>
+
+<script>
+
+  // ---------- floating hearts ----------
+  const heartField = document.getElementById('heartField');
+  const heartChars = ['♥','❤','💗'];
+  for(let i=0;i<14;i++){
+    const s = document.createElement('span');
+    s.textContent = heartChars[Math.floor(Math.random()*heartChars.length)];
+    s.style.left = Math.random()*100 + '%';
+    s.style.fontSize = (14 + Math.random()*16) + 'px';
+    s.style.animationDuration = (10 + Math.random()*10) + 's';
+    s.style.animationDelay = (Math.random()*14) + 's';
+    heartField.appendChild(s);
+  }
+
+  // ---------- page navigation ----------
+  const pages = ['page-ask','page-ideas','page-outfit','page-calendar','page-thanks'];
+  const dots = document.querySelectorAll('.progress .dot');
+  function goTo(id){
+    pages.forEach(p => document.getElementById(p).classList.toggle('active', p === id));
+    const idx = pages.indexOf(id);
+    dots.forEach((d,i) => d.classList.toggle('active', i <= idx));
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.querySelectorAll('.next-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> goTo(btn.dataset.next));
+  });
+
+  // ---------- ask page: shrinking no / growing yes ----------
+  const yesBtn = document.getElementById('yesBtn');
+  const noBtn = document.getElementById('noBtn');
+  const askHint = document.getElementById('askHint');
+  const hints = [
+    "hmm, are you sure?",
+    "really?",
+    "take another look at that yes button...",
+    "it's getting harder to click, isn't it",
+    "just saying, yes is right there",
+    "ok this is your last chance to change your mind"
+  ];
+  let noPresses = 0;
+
+  noBtn.addEventListener('click', () => {
+    noPresses++;
+    const noScale = Math.max(0.18, 1 - noPresses * 0.14);
+    const yesScale = Math.min(2.4, 1 + noPresses * 0.22);
+    noBtn.style.transform = `scale(${noScale})`;
+    yesBtn.style.transform = `scale(${yesScale})`;
+    if (noPresses >= hints.length){
+      noBtn.disabled = true;
+      noBtn.style.opacity = '0.35';
+    }
+    askHint.textContent = hints[Math.min(noPresses-1, hints.length-1)];
+    askHint.classList.add('show');
+  });
+
+  function burstHearts(){
+    for(let i=0;i<10;i++){
+      const b = document.createElement('span');
+      b.className = 'burst';
+      b.textContent = ['💗','💕','✨'][Math.floor(Math.random()*3)];
+      b.style.left = (45 + Math.random()*10) + 'vw';
+      b.style.top = (50 + Math.random()*10) + 'vh';
+      b.style.animationDelay = (Math.random()*.3) + 's';
+      document.body.appendChild(b);
+      setTimeout(()=> b.remove(), 1200);
+    }
+  }
+
+  yesBtn.addEventListener('click', () => {
+    burstHearts();
+    setTimeout(()=> goTo('page-ideas'), 250);
+  });
+
+  // ---------- selectable cards (idea + outfit) ----------
+  const recapIdea = document.getElementById('recapIdea');
+  const recapOutfit = document.getElementById('recapOutfit');
+  let selectedIdea = null;
+  let selectedOutfit = null;
+
+  function setupSelectableGrid(gridId, onPick){
+    const grid = document.getElementById(gridId);
+    grid.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('click', () => {
+        const alreadySelected = card.classList.contains('selected');
+        grid.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+        if(!alreadySelected){
+          card.classList.add('selected');
+          onPick(card.dataset.value);
+        } else {
+          onPick(null);
+        }
+      });
+    });
+  }
+
+  function updateRecapText(el, value){
+    if(value){
+      el.textContent = value;
+      el.classList.remove('empty');
+    } else {
+      el.textContent = 'not picked yet';
+      el.classList.add('empty');
+    }
+  }
+
+  setupSelectableGrid('ideaGrid', (value) => {
+    selectedIdea = value;
+    updateRecapText(recapIdea, value);
+  });
+  setupSelectableGrid('outfitGrid', (value) => {
+    selectedOutfit = value;
+    updateRecapText(recapOutfit, value);
+  });
+
+  // ---------- calendar ----------
+  const monthLabel = document.getElementById('monthLabel');
+  const calGrid = document.getElementById('calGrid');
+  const confirmEl = document.getElementById('confirm');
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  let viewDate = new Date(today.getFullYear(), today.getMonth(), 1);
+  let selected = null;
+
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const weekdays = ["S","M","T","W","T","F","S"];
+
+  function renderCalendar(){
+    calGrid.innerHTML = '';
+    monthLabel.textContent = `${monthNames[viewDate.getMonth()]} ${viewDate.getFullYear()}`;
+
+    weekdays.forEach(w=>{
+      const el = document.createElement('div');
+      el.className = 'wd';
+      el.textContent = w;
+      calGrid.appendChild(el);
+    });
+
+    const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+    const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 0).getDate();
+
+    for(let i=0;i<firstDay;i++){
+      const el = document.createElement('div');
+      el.className = 'day empty';
+      calGrid.appendChild(el);
+    }
+
+    for(let d=1; d<=daysInMonth; d++){
+      const thisDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
+      const el = document.createElement('div');
+      el.className = 'day';
+      el.textContent = d;
+
+      if(thisDate < today){
+        el.classList.add('past');
+      } else {
+        el.classList.add('future');
+        if(thisDate.getTime() === today.getTime()) el.classList.add('today');
+        if(selected && thisDate.getTime() === selected.getTime()) el.classList.add('selected');
+        el.addEventListener('click', () => {
+          selected = thisDate;
+          renderCalendar();
+          showConfirm();
+        });
+      }
+      calGrid.appendChild(el);
+    }
+  }
+
+  function showConfirm(){
+    if(!selected) return;
+    const options = { weekday: 'long', month: 'long', day: 'numeric' };
+    const formatted = selected.toLocaleDateString('en-US', options);
+    confirmEl.hidden = false;
+    confirmEl.innerHTML = `it's a date — ${formatted} 🎉
+      <span class="small">can't wait to see you.</span>`;
+    updateRecapText(document.getElementById('recapDay'), formatted);
+    burstHearts();
+  }
+
+  document.getElementById('prevMonth').addEventListener('click', () => {
+    viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()-1, 1);
+    renderCalendar();
+  });
+  document.getElementById('nextMonth').addEventListener('click', () => {
+    viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 1);
+    renderCalendar();
+  });
+
+  renderCalendar();
+
+  // ---------- send responses ----------
+  // 1. Sign up free at https://formspree.io and create a form.
+  // 2. Replace YOUR_FORM_ID below with the ID it gives you (looks like "abcdwxyz").
+  const FORMSPREE_ENDPOINT = "https://formspree.io/f/mlgqovpv";
+
+  const sendBtn = document.getElementById('sendBtn');
+  const sendStatus = document.getElementById('sendStatus');
+
+  sendBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    sendBtn.disabled = true;
+    sendBtn.textContent = "sending...";
+
+    const thanksNote = document.getElementById('thanksNote');
+    document.getElementById('recapIdeaFinal').textContent = selectedIdea || "not picked";
+    document.getElementById('recapOutfitFinal').textContent = selectedOutfit || "not picked";
+    document.getElementById('recapDayFinal').textContent = selected
+      ? selected.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+      : "not picked";
+
+    if (FORMSPREE_ENDPOINT.includes('YOUR_FORM_ID')) {
+      thanksNote.textContent = "heads up: this page isn't connected to an inbox yet, so nothing was actually sent — see setup instructions.";
+      thanksNote.hidden = false;
+      thanksNote.classList.add('show');
+      goTo('page-thanks');
+      sendBtn.disabled = false;
+      sendBtn.textContent = "send my answer 💌";
+      return;
+    }
+
+    try {
+      const res = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: { "Accept": "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({
+          "date idea": selectedIdea || "not picked",
+          "outfit": selectedOutfit || "not picked",
+          "day": selected ? selected.toDateString() : "not picked",
+          "no presses before yes": noPresses
+        })
+      });
+      if (res.ok) {
+        thanksNote.hidden = true;
+        goTo('page-thanks');
+      } else {
+        throw new Error("send failed");
+      }
+    } catch (err) {
+      sendBtn.disabled = false;
+      sendBtn.textContent = "send my answer 💌";
+      sendStatus.textContent = "hmm, that didn't send — try again?";
+      sendStatus.classList.add('show');
+    }
+  });
+
+</script>
+
+</body>
+</html>
